@@ -1,0 +1,22 @@
+# user on your local machine
+localhost_user: yourLocalUser
+# local config ssh file
+config_file: .ssh/config
+
+# any name for your server
+server_name: YourAnyNameForServer
+# domain or ip of your remote server
+remote_host: 111.111.111.111
+
+# root user
+root_user: root
+root_key_name: "{{root_user}}_{{server_name}}"
+root_private_key_file: .ssh/{{root_key_name}}
+root_public_key_file: .ssh/{{root_key_name}}.pub
+
+# any user for ansible
+wg_user: wguser
+wg_user_group: wguser
+wg_user_key_name: "{{wg_user}}_{{server_name}}"
+wg_user_private_key_file: .ssh/{{wg_user_key_name}}
+wg_user_public_key_file: .ssh/{{wg_user_key_name}}.pub

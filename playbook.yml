@@ -1,0 +1,19 @@
+---
+- name: "Setup WireGuard on the remote {{server_name}}"
+  hosts: www
+  become: yes
+  user: "{{root_user}}"
+  vars_files:
+    - group_vars/main.yml
+  tasks:
+    - name: "Update package lists"
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: "Upgrade all packages"
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: "Print home directory"
+      ansible.builtin.debug:
+        msg: "IP = {{ ansible_ssh_host }}"
