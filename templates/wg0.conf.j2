@@ -1,0 +1,15 @@
+[Interface]
+PrivateKey = {{ wg_private_key }}
+Address = {{ wg_server_ip }}
+ListenPort = {{ wg_server_port }}
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o {{ wg_server_eth_adapter }} -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTРОUTING -o {{ wg_server_eth_adapter }} -j MASQUERADE
+
+{% set increment_ip = 0 %}
+{% for key in wg_client_public_keys %}
+[Peer]
+PublicKey = {{ key }}
+AllowedIPs = {{ wg_base_client_ip | ipmath(increment_ip) }}{{ wg_client_subnet }}
+
+{% set increment_ip = increment_ip + 1 %}
+{% endfor %}

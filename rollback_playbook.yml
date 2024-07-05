@@ -1,0 +1,53 @@
+---
+- name: "Rollback WireGuard setup on the remote {{server_name}}"
+  hosts: www
+  become: yes
+  vars_files:
+    - group_vars/main.yml
+  tasks:
+    - name: "Stop WireGuard service"
+      ansible.builtin.systemd:
+        name: wg-quick@wg0.service
+        state: stopped
+
+    - name: "Disable WireGuard service"
+      ansible.builtin.systemd:
+        name: wg-quick@wg0.service
+        enabled: no
+
+    - name: "Remove WireGuard configuration file"
+      ansible.builtin.file:
+        path: /etc/wireguard/wg0.conf
+        state: absent
+
+    - name: "Remove WireGuard keys"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/etc/wireguard/privatekey"
+        - "/etc/wireguard/publickey"
+
+    - name: "Remove WireGuard package"
+      ansible.builtin.apt:
+        name: wireguard
+        state: absent
+
+    - name: "Disable IP forwarding"
+      ansible.builtin.sysctl:
+        name: net.ipv4.ip_forward
+        value: '0'
+        state: present
+        reload: yes
+
+    - name: "Get local user information"
+      ansible.builtin.user:
+        name: "{{ localhost_user }}"
+      register: local_user_info
+      delegate_to: localhost
+
+    - name: "Remove old SSH key from authorized_keys from the {{ server_name }}"
+      ansible.builtin.authorized_key:
+        user: "{{ root_user }}"
+        state: absent
+        key: "{{ lookup('file', user_info.home + '/' + root_public_key_file) }}"

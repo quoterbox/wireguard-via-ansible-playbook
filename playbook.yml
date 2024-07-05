@@ -1,8 +1,8 @@
 ---
-- name: "Setup WireGuard on the remote {{server_name}}"
+- name: "Setup WireGuard on the remote {{ server_name }}"
   hosts: www
   become: yes
-  user: "{{root_user}}"
+  user: "{{ root_user }}"
   vars_files:
     - group_vars/main.yml
   tasks:
@@ -14,6 +14,68 @@
       ansible.builtin.apt:
         upgrade: dist
 
-    - name: "Print home directory"
+    - name: "Install WireGuard package"
+      ansible.builtin.apt:
+        name: wireguard
+        state: present
+
+    - name: "Generate WG server keys"
+      ansible.builtin.shell: |
+        wg genkey | tee {{ wg_server_private_key_file }} | wg pubkey | tee {{ wg_server_public_key_file }}
+
+    - name: "Change the private WG server key permissions"
+      ansible.builtin.file:
+        path: "{{ wg_server_private_key_file }}"
+        state: file
+        mode: 0600
+
+    - name: "Enable IP forwarding"
+      ansible.builtin.sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        state: present
+        reload: yes
+
+    - name: "Read server private key"
+      ansible.builtin.slurp:
+        src: "{{ wg_server_private_key_file }}"
+      register: wg_private_key_content
+
+    - name: "Generate keys for each client"
+      ansible.builtin.shell: |
+        wg genkey | tee {{ wg_path }}/{{ item.name }}_privatekey | wg pubkey | tee {{ wg_path }}/{{ item.name }}_publickey
+      loop: "{{ wg_clients }}"
+
+    - name: "Read client public keys"
+      ansible.builtin.slurp:
+        src: "{{ wg_path }}/{{ item.name }}_publickey"
+      loop: "{{ wg_clients }}"
+      register: client_public_keys
+
+    - name: "Set up client public keys"
+      set_fact:
+        wg_client_public_keys: "{{ client_public_keys.results | map(attribute='content') | map('b64decode') | map('regex_replace', '\n', '') | list }}"
+
+    - name: "Create wg0.conf file with peer configurations"
+      ansible.builtin.template:
+        src: "templates/wg0.conf.j2"
+        dest: "{{ wg_path }}/wg0.conf"
+      vars:
+        wg_private_key: "{{ wg_private_key_content.content | b64decode | regex_replace('\n', '') }}"
+
+    - name: "Restart WireGuard service"
+      ansible.builtin.systemd:
+        name: wg-quick@wg0
+        state: restarted
+
+    - name: "Check WireGuard service status"
+      ansible.builtin.systemd:
+        name: wg-quick@wg0
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      register: wg_status
+
+    - name: "Print WireGuard service status"
       ansible.builtin.debug:
-        msg: "IP = {{ ansible_ssh_host }}"
+        var: wg_status.state
