@@ -1,0 +1,13 @@
+---
+- name: "Fetch WireGuard client config files"
+  hosts: www
+  become: yes
+  vars_files:
+    - group_vars/main.yml
+  tasks:
+    - name: "Fetch WireGuard client config files"
+      ansible.builtin.fetch:
+        src: "{{ wg_path }}/wg_{{ item.name }}.conf"
+        dest: "{{ wg_conf_dest_dir }}"
+        flat: yes
+      loop: "{{ wg_clients }}"

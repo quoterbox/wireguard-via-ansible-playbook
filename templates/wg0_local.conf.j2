@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{ client_private_key }}
+Address = {{ client_ip }}
+DNS = {{ wg_client_dns }}
+
+[Peer]
+PublicKey = {{ wg_public_key }}
+Endpoint = {{ remote_host }}:{{ wg_server_port }}
+AllowedIPs = {{ wg_conf_client_AllowedIPs }}
+PersistentKeepalive = {{ wg_conf_client_PersistentKeepalive }}

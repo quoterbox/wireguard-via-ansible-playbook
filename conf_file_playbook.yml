@@ -1,0 +1,34 @@
+---
+- name: "Generate .conf file for the local WireGuard application"
+  hosts: www
+  become: yes
+  user: "{{ root_user }}"
+  vars_files:
+    - group_vars/main.yml
+  tasks:
+    - name: "Read server public key"
+      ansible.builtin.slurp:
+        src: "{{ wg_server_public_key_file }}"
+      register: wg_public_key_content
+
+    - name: "Read client private keys"
+      ansible.builtin.slurp:
+        src: "{{ wg_path }}/{{ item.name }}_privatekey"
+      loop: "{{ wg_clients }}"
+      register: client_private_keys
+
+    - name: "Set up client private keys"
+      set_fact:
+        wg_client_private_keys: "{{ client_private_keys.results | map(attribute='content') | map('b64decode') | map('regex_replace', '\n', '') | list }}"
+
+    - name: "Generate client configuration files"
+      ansible.builtin.template:
+        src: "templates/wg0_local.conf.j2"
+        dest: "{{ wg_path }}/wg_{{ item.name }}.conf"
+      loop: "{{ wg_clients }}"
+      loop_control:
+        index_var: client_index
+      vars:
+        client_private_key: "{{ wg_client_private_keys[client_index] }}"
+        client_ip: "{{ wg_base_client_ip | ipmath(client_index) }}{{ wg_client_subnet }}"
+        wg_public_key: "{{ wg_public_key_content.content | b64decode | regex_replace('\n', '') }}"
