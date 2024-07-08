@@ -1,37 +1,83 @@
 ---
-- name: "Rollback WireGuard setup on the remote {{server_name}}"
+- name: "Rollback WireGuard setup on the remote {{ server_name }}"
   hosts: www
   become: yes
   vars_files:
-    - group_vars/main.yml
+    - ../group_vars/main.yml
   tasks:
     - name: "Stop WireGuard service"
       ansible.builtin.systemd:
-        name: wg-quick@wg0.service
+        name: wg-quick@wg0
         state: stopped
 
     - name: "Disable WireGuard service"
       ansible.builtin.systemd:
-        name: wg-quick@wg0.service
+        name: wg-quick@wg0
         enabled: no
 
-    - name: "Remove WireGuard configuration file"
+    - name: "Remove wg0.conf file"
       ansible.builtin.file:
-        path: /etc/wireguard/wg0.conf
+        path: "{{ wg_path }}/wg0.conf"
         state: absent
 
-    - name: "Remove WireGuard keys"
+    - name: "Remove WireGuard server keys"
       ansible.builtin.file:
-        path: "{{ item }}"
+        path: "{{ wg_server_private_key_file }}"
         state: absent
-      loop:
-        - "/etc/wireguard/privatekey"
-        - "/etc/wireguard/publickey"
 
-    - name: "Remove WireGuard package"
-      ansible.builtin.apt:
-        name: wireguard
+    - name: "Remove WireGuard server public key"
+      ansible.builtin.file:
+        path: "{{ wg_server_public_key_file }}"
         state: absent
+
+    - name: "Remove WireGuard client keys"
+      ansible.builtin.file:
+        path: "{{ wg_path }}/{{ item.name }}_privatekey"
+        state: absent
+      loop: "{{ wg_clients }}"
+
+    - name: "Remove WireGuard client public keys"
+      ansible.builtin.file:
+        path: "{{ wg_path }}/{{ item.name }}_publickey"
+        state: absent
+      loop: "{{ wg_clients }}"
+
+    - name: "Remove client configuration files"
+      ansible.builtin.file:
+        path: "{{ wg_path }}/wg_{{ item.name }}.conf"
+        state: absent
+      loop: "{{ wg_clients }}"
+
+    - name: "Check if iptables FORWARD rule exists"
+      ansible.builtin.shell: |
+        iptables-save | grep -- '-A FORWARD -i wg0 -j ACCEPT' || true
+      register: forward_rule_check
+      ignore_errors: yes
+
+    - name: "Remove iptables FORWARD rule"
+      ansible.builtin.shell: |
+        iptables -D FORWARD -i wg0 -j ACCEPT
+      when: forward_rule_check.stdout != ''
+      ignore_errors: yes
+
+    - name: "Check if iptables POSTROUTING rule exists"
+      ansible.builtin.shell: |
+        iptables-save | grep -- '-t nat -A POSTROUTING -o {{ wg_server_eth_adapter }} -j MASQUERADE' || true
+      register: postrouting_rule_check
+      ignore_errors: yes
+
+    - name: "Remove iptables POSTROUTING rule"
+      ansible.builtin.shell: |
+        iptables -t nat -D POSTROUTING -o {{ wg_server_eth_adapter }} -j MASQUERADE
+      when: postrouting_rule_check.stdout != ''
+      ignore_errors: yes
+
+    - name: "Remove all iptables POSTROUTING MASQUERADE rules for eth0"
+      ansible.builtin.shell: |
+        while iptables -t nat -C POSTROUTING -o {{ wg_server_eth_adapter }} -j MASQUERADE 2>/dev/null; do
+          iptables -t nat -D POSTROUTING -o {{ wg_server_eth_adapter }} -j MASQUERADE
+        done
+      ignore_errors: yes
 
     - name: "Disable IP forwarding"
       ansible.builtin.sysctl:
@@ -39,15 +85,3 @@
         value: '0'
         state: present
         reload: yes
-
-    - name: "Get local user information"
-      ansible.builtin.user:
-        name: "{{ localhost_user }}"
-      register: local_user_info
-      delegate_to: localhost
-
-    - name: "Remove old SSH key from authorized_keys from the {{ server_name }}"
-      ansible.builtin.authorized_key:
-        user: "{{ root_user }}"
-        state: absent
-        key: "{{ lookup('file', user_info.home + '/' + root_public_key_file) }}"
