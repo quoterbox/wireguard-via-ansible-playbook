@@ -73,7 +73,7 @@ In this command, `~/.ssh/root_wg_server` - is if you left the settings as defaul
 10.Enter the root user's password when prompted in the terminal to confirm the SSH key copy.
 11.To verify that the keys were successfully copied, try logging into the server without a password using the command:
 
-```ssh root@147.45.184.226```
+```ssh root@111.111.111.111```
 
 12.Run the playbook to set up WireGuard on the server:
 
