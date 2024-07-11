@@ -95,14 +95,14 @@ wg_conf_dest_dir: "/home/yourOwnUserFolder/conf_files/"
 wg_conf_dest_dir: "/home/yourOwnUserFolder/conf_files/"
 ```
 
-![](\docs\wireguard_app.png)
+<img height="515" src="./docs/wireguard_app.png" alt="WireGuard App"/>
 
 
 16.Нажимаем подключить, проверяем работу VPN, например тут:
 
 https://api.myip.com
 
-![](\docs\check_ip.png)
+<img height="334" src="./docs/check_ip.png" alt="Check IP address"/>
 
 
 ### Описание всех настроек в файле group_vars/main.yml

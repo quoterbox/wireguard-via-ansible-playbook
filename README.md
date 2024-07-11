@@ -93,7 +93,8 @@ In this command, `~/.ssh/root_wg_server` - is if you left the settings as defaul
 # Файл group_vars/main.yml
 wg_conf_dest_dir: "/home/yourOwnUserFolder/conf_files/"
 ```
-![](\docs\wireguard_app.png)
+
+<img height="515" src="./docs/wireguard_app.png" alt="WireGuard App"/>
 
 16.Click connect and check the VPN operation, for example here:
 
