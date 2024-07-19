@@ -79,15 +79,19 @@ In this command, `~/.ssh/root_wg_server` - is if you left the settings as defaul
 
 ```ansible-playbook -i hosts.ini playbook.yml```
 
-13.Create configuration files for the clients, which can be downloaded and used in the WireGuard application:
+13.Download the WireGuard application for your device (Windows, Linux, Android, iOS etc).
+
+https://www.wireguard.com/install/
+
+14.Create configuration files for the clients, which can be downloaded and used in the WireGuard application:
 
 ```ansible-playbook -i hosts.ini conf_file_playbook.yml```
 
-14.Download the client config files to the local computer:
+15.Download the client config files to the local computer:
 
 ```ansible-playbook -i hosts.ini download_conf_files.yml```
 
-15.Specify the required config file for the necessary client in the application on your local computer from the folder specified in the settings:
+16.Specify the required config file for the necessary client in the application on your local computer from the folder specified in the settings:
 
 ```
 # Файл group_vars/main.yml
