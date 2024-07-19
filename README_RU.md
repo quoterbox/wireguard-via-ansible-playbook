@@ -2,6 +2,14 @@
 
 ### [EN documentation](README.md)
   
+### Видеоинструкция
+
+<video width="320" height="240" controls>
+  <source src="https://github.com/quoterbox/wireguard-via-ansible-playbook/blob/master/WireGuardWithAnsible5.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+
 ### Быстрый старт
 1.Склонируйте себе репозиторий, например в **HOME/ВАШ_ПОЛЬЗОВАТЕЛЬ/ansible-project/**
 
