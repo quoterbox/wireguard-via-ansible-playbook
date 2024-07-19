@@ -4,7 +4,7 @@
   
 ### Видеоинструкция
 
-<video src="https://github.com/quoterbox/wireguard-via-ansible-playbook/blob/master/WireGuardWithAnsible5.mp4"></video>
+https://www.youtube.com/watch?v=_BztZwzXI2A
 
 
 ### Быстрый старт
