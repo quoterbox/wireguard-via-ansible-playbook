@@ -2,7 +2,7 @@
 
 ### [RU documentation](README_RU.md)
   
-### Video instruction
+### Video instruction (the up-to-date documentation is always in the repository's README.)
 
 https://www.youtube.com/watch?v=_BztZwzXI2A
 
@@ -47,56 +47,40 @@ wg_clients:
 wg_conf_dest_dir: "/home/yourOwnUserFolder/conf_files/"
 ``` 
 
-4.Make sure you have Python installed:
+4.Create SSH key files on the local computer by running the first local playbook from the playbooks folder **HOME/YOUR_USER/ansible-project/**:
 
-```python --version```
+```ansible-playbook -i hosts.ini localhost_playbook.yml```
 
-or
+5.If the keys are successfully created, they will appear by default in the `~/.ssh/` folder.
 
-```python3 --version```
-
-5.Install Ansible on the computer from which the remote server configuration is performed:
-
-```sudo apt install ansible```
-
-6.Make sure Ansible is installed:
-
-```ansible --version```
-
-7.Create SSH key files on the local computer by running the first local playbook from the playbooks folder **HOME/YOUR_USER/ansible-project/**:
-
-```ansible-playbook -i hosts.ini localhost_playbook.yml --ask-become-pass```
-
-8.If the keys are successfully created, they will appear by default in the `~/.ssh/` folder.
-
-9.Copy the public key to the remote server, replacing the IP address in the command with your server's IP:
+6.Copy the public key to the remote server, replacing the IP address in the command with your server's IP:
 
 ```ssh-copy-id -i ~/.ssh/root_wg_server root@111.111.111.111```
 
 In this command, `~/.ssh/root_wg_server` - is if you left the settings as default.
 
-10.Enter the root user's password when prompted in the terminal to confirm the SSH key copy.
-11.To verify that the keys were successfully copied, try logging into the server without a password using the command:
+7.Enter the root user's password when prompted in the terminal to confirm the SSH key copy.
+8.To verify that the keys were successfully copied, try logging into the server without a password using the command:
 
 ```ssh root@111.111.111.111```
 
-12.Run the playbook to set up WireGuard on the server:
+9.Run the playbook to set up WireGuard on the server:
 
 ```ansible-playbook -i hosts.ini playbook.yml```
 
-13.Download the WireGuard application for your device (Windows, Linux, Android, iOS etc).
+10.Download the WireGuard application for your device (Windows, Linux, Android, iOS etc).
 
 https://www.wireguard.com/install/
 
-14.Create configuration files for the clients, which can be downloaded and used in the WireGuard application:
+11.Create configuration files for the clients, which can be downloaded and used in the WireGuard application:
 
 ```ansible-playbook -i hosts.ini conf_file_playbook.yml```
 
-15.Download the client config files to the local computer:
+12.Download the client config files to the local computer:
 
 ```ansible-playbook -i hosts.ini download_conf_files.yml```
 
-16.Specify the required config file for the necessary client in the application on your local computer from the folder specified in the settings:
+13.Specify the required config file for the necessary client in the application on your local computer from the folder specified in the settings:
 
 ```
 # Файл group_vars/main.yml
@@ -105,7 +89,7 @@ wg_conf_dest_dir: "/home/yourOwnUserFolder/conf_files/"
 
 <img height="515" src="./docs/wireguard_app.png" alt="WireGuard App"/>
 
-16.Click connect and check the VPN operation, for example here:
+14.Click connect and check the VPN operation, for example here:
 
 https://api.myip.com
 
@@ -168,6 +152,39 @@ wg_conf_dest_dir: "/home/yourOwnUserFolder/conf_files/"
 wg_conf_client_AllowedIPs: "0.0.0.0/0"
 wg_conf_client_PersistentKeepalive: 20
 ```
+
+## Rollback playbook
+
+There's an option to roll back all changes on the server and the local machine.
+
+1. To roll back changes on the server, run the playbook:
+
+```ansible-playbook -i hosts.ini rollback/playbook.yml```
+
+2. To roll back changes on the local machine(from which the remote server is being configured), run the playbook:
+
+```ansible-playbook -i hosts.ini rollback/localhost_playbook.yml```
+
+
+## Possible Issues
+
+1. Ensure that Python is installed:
+
+```python --version```
+
+or
+
+```python3 --version```
+
+2. Install Ansible on the computer from which you are configuring the remote server:
+
+```sudo apt install ansible```
+
+3. Verify that Ansible is installed:
+
+```ansible --version```
+
+4. Check that the server IP address is specified in `hosts.ini` and `group_vars/main.yml`
 
 ### LICENSE
 
